@@ -38,6 +38,7 @@ mvn install
 docker-compose up
 ```
 
+В файле **requests_example.http** находятся примеры запросов для тестирование через Postman.
 
 ### 2. Для работы FRONT нужно :
 -  Склонировать репозиторий по адресу https://github.com/serp-ya/card-transfer, 
@@ -52,10 +53,10 @@ npm run start
 
 При удачном запуске нашего REST-сервиса и Front приложения, по адресу http://localhost:3000/ откроется вот такой интерфейс:
 
-<image src=https://tppr.me/9pDnj>
+![Screenshot](front.jpg)
 
 
 
 
-В файле **requests_example.http** находятся примеры запросов.
+
 
