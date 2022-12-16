@@ -1,6 +1,5 @@
 package ru.netology.moneytransferservice.controller;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,13 +10,9 @@ import ru.netology.moneytransferservice.web.request.ConfirmOperationRequest;
 import ru.netology.moneytransferservice.web.request.TransferRequest;
 import ru.netology.moneytransferservice.web.response.MoneyTransferResponse;
 
-//todo javadoc
-//todo validation in all dto and requests(?)
-//todo unit тестами с использованием mockito
-//todo интеграционные тесты с использованием testcontainers
-// todo уточнить про метод преобразования суммы из фронтенда и убирания нулей, можно ли сделать это иначе? Почему фронт передает именно так?
-// todo confirmation code уточнить вопрос нужно ли его где то вводить во фронте, как это лучше описать в приложении
-// todo пересобрать образ в докер после всех исправлений в проекте
+/**
+ * This class is a rest controller that accepts requests from the client and passes data to the service.
+ */
 
 
 @CrossOrigin(origins = "http://localhost:3000")

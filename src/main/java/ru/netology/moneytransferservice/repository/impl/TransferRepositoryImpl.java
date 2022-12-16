@@ -9,6 +9,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * This class is a repository that has 3 thread-safe data structures ConcurrentHashMap
+ * These maps store data about transfers (requests), card from and card to, operation confirmation codes, operation id
+ * Here we have several methods for saving and retrieving this data
+ */
+
 @Repository
 public class TransferRepositoryImpl implements TransferRepository {
 
@@ -33,6 +39,7 @@ public class TransferRepositoryImpl implements TransferRepository {
        return operationId.incrementAndGet();
     }
 
+
     @Override
     public void saveCode(String operationId, String confirmationCode) {
          codes.put(operationId, confirmationCode);
@@ -53,6 +60,4 @@ public class TransferRepositoryImpl implements TransferRepository {
     public Card getCard(String cardNumber) {
         return cards.get(cardNumber);
     }
-
-
 }

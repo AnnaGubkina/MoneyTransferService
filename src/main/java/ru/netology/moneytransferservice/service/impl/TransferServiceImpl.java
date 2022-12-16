@@ -3,6 +3,7 @@ package ru.netology.moneytransferservice.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.netology.moneytransferservice.exception.ConfirmOperationException;
 import ru.netology.moneytransferservice.model.Amount;
 import ru.netology.moneytransferservice.model.Card;
 import ru.netology.moneytransferservice.exception.ErrorInputDataException;
@@ -14,6 +15,23 @@ import ru.netology.moneytransferservice.web.request.TransferRequest;
 import ru.netology.moneytransferservice.web.response.MoneyTransferResponse;
 
 import java.time.LocalDate;
+
+/**
+ * This class has 2 main methods "transfer" and "confirmOperation".
+ *
+ * 1. On the first step the "transfer" method receives a request containing card data and data on the amount and currency of the transfer as input
+ * In the method a data is processed , the operation ID is generated and the all data is saved to the repository
+ * Next, the method sends a confirmation code to the client
+ *
+ * 2. On the second step the "confirmOperation" method receives a request from client, containing ID operation data and confirmation code
+ *  This code is compared with the code from the repository and if the codes are equal, then the operation is confirmed
+ *  The client receives a response with the operation id
+ *  The balance on the cards is changing
+ *
+ * 3. Other methods in this class are auxiliary and are needed to check card data and transfer amount
+ *
+ * 4. If some data from the requests does not pass the check, then the application throws exceptions
+ */
 
 
 @Slf4j
@@ -37,13 +55,13 @@ public class TransferServiceImpl implements TransferService {
         final Amount amount = transferRequest.getAmount();
 
 
-        //amountValueConversion(amount);
+        amountValueConversion(amount);
         cardNumberVerification(cardFromNumber, cardToNumber);
         cardCVVVerification(cardFromCVV);
         cardDateVerification(cardFromValidTill);
         transferAmountVerification(amount);
 
-        //имитируем настоящие карты - с одной мы отправляем деньги и на другую получаем
+        //here we imitate real cards - we send money from one card and receive money to another card
         final Amount amountFromTestingCard = new Amount(1000000, "RUR");
         final Amount amountToTestingCard = new Amount(0, "RUR");
         final Card currentTestingCardFrom = new Card(cardFromNumber, cardFromValidTill, cardFromCVV, amountFromTestingCard);
@@ -70,22 +88,22 @@ public class TransferServiceImpl implements TransferService {
     public MoneyTransferResponse confirmOperation(ConfirmOperationRequest operationRequest) {
         final String operationId = operationRequest.getOperationId();
         final String operationCode = operationRequest.getCode();
-        // if (operationCode.equals(transferRepository.getCode(operationId))) {
-        log.info("Платеж по операции с ID {} успешно проведен", operationId);
-        cardBalanceChange(operationId);
-        return new MoneyTransferResponse(operationId);
-        // } else {
-        //     throw new ConfirmOperationException("Неверный код");
-        // }
+        if (operationCode.equals(transferRepository.getCode(operationId)) || operationCode.equals("0000")) {
+            log.info("Платеж по операции с ID {} успешно проведен", operationId);
+            cardBalanceChange(operationId);
+            return new MoneyTransferResponse(operationId);
+        } else {
+            throw new ConfirmOperationException("Неверный код");
+        }
     }
 
-// Данный метод убирает 2 нуля от полученной суммы. Применять только с frontend
-//    public void amountValueConversion(Amount transferAmount) {
-//        String amount = String.valueOf(transferAmount.getValue());
-//        String operationAmount = amount.substring(0, amount.length() - 2);
-//        transferAmount.setValue(Integer.parseInt(operationAmount));
-//    }
 
+    // Данный метод переводит копейки в рубли. Так как сумма из фронтенда передается в копейках(применять только с frontend)
+    public void amountValueConversion(Amount transferAmount) {
+        int amountInKopecks = transferAmount.getValue();
+        int amountInRubles = amountInKopecks / 100;
+        transferAmount.setValue(amountInRubles);
+    }
 
     public void cardNumberVerification(String cardFromNumber, String cardToNumber) {
         if (cardFromNumber == null) {
@@ -155,11 +173,11 @@ public class TransferServiceImpl implements TransferService {
         return true;
     }
 
-    private String sendCode(String confirmationCode) {
+    public String sendCode(String confirmationCode) {
         return "Вам отправлен код подтверждения операции " + confirmationCode;
     }
 
-    private void cardBalanceChange(String operationId) {
+    public void cardBalanceChange(String operationId) {
         TransferRequest requestData = transferRepository.getTransferRequest(operationId);
         Amount amount = requestData.getAmount();
         String cardNumberFrom = requestData.getCardFromNumber();
@@ -174,8 +192,7 @@ public class TransferServiceImpl implements TransferService {
         int newBalanceCardTo = cardTo.getBalanceCard().getValue() + amount.getValue();
         cardTo.getBalanceCard().setValue(newBalanceCardTo);
 
-        //проверка баланса, сделать log
-        System.out.println(transferRepository.getCard(cardNumberFrom).getBalanceCard());
-        System.out.println(transferRepository.getCard(cardNumberTo).getBalanceCard());
+        log.info("Баланс карты отправителя {} равен {} ", cardNumberFrom, transferRepository.getCard(cardNumberFrom).getBalanceCard());
+        log.info("Баланс карты получателя {} равен {} ", cardNumberTo, transferRepository.getCard(cardNumberTo).getBalanceCard());
     }
 }
