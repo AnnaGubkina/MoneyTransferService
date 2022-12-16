@@ -53,7 +53,7 @@ npm run start
 
 При удачном запуске нашего REST-сервиса и Front приложения, по адресу http://localhost:3000/ откроется вот такой интерфейс:
 
-![Screenshot](front.jpg)
+![front](front.jpg)
 
 
 
